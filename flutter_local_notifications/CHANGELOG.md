@@ -1,3 +1,110 @@
+# [14.0.1]
+
+* [Android] fixed issue [1991](https://github.com/MaikuB/flutter_local_notifications/issues/1991) where tapping on a notification action with `showUserInterface` set to true whilst app is terminated wouldn't dismiss/cancel notification
+* [Android] updated logic when trying to show a scheduled notification so that receiver would remove a corrupt notification to avoid exceptions from occurring over and over again. An message will be written to error log when this occurs as well. Thanks to the PR from []
+* Fixed example app on iOS and macOS so it would play the custom sound as this step was missed in previous released where the iOS and macOS side was recreated
+
+# [14.0.0+2]
+
+* Bumped maximum Dart SDK constraint
+* Recreated iOS and macOS side of the example app so they would build and run with Flutter 3.10 having landed on stable channel
+
+
+# [14.0.0+1]
+
+* Updated cavaet on scheduling Android notifications where a link to https://dontkillmyapp.com has been added as it contains instructions on how to configure various devices to bypass the battery optimisations that prevent background processes from working e.g. scheduled notifications
+* Added missing note to the 14.0.0 release notes on a breaking change  the `AndroidFlutterLocalNotificationsPlugin` APIs around scheduling notifications where the `allowWhileIdle` has been removed and replaced by a `scheduleMode` parameter that allows for scheduling inexact notifications
+* Updated docs to explain that if a notification was scheduled on Android with exact timing via the `AndroidScheduleMode` enum but the exact alarm permissions had been revoked, an error log message will be written and notification will no longer be scheduled. This means recurring notifications would no longer be scheduled as well given the permission had been revoked
+
+
+# [14.0.0]
+
+* **Breaking change** the `id` property of the `ActiveNotification` class is now nullable to help indicate that the notification may not have been created by the plugin e.g. it was from Firebase Cloud Messaging. Thanks to the PR from [frankvollebregt](https://github.com/frankvollebregt)
+* **Breaking change** the following classes are now enums
+  * `AndroidNotificationCategory`
+  * `AndroidServiceForegroundType`
+  * `AndroidServiceStartType`
+  * `AudioAttributesUsage`
+  * `Day`
+  * `InterruptionLevel`
+  * `LinuxNotificationCategory`
+  * `LinuxNotificationUrgency`
+  * `Priority`
+* [Android] added support for scheduling inexact notifications. The corresponding APIs for scheduling notifications now have a new `AndroidScheduleMode` to allow for configuring this if required. The `androidAllowWhileIdle` argument is now deprecated when using the APIs available for scheduling notifications via the `FlutterLocalNotificationsPlugin` APIs and will be removed in the future. Thanks to the PR from [Joachim Böhmer](https://github.com/kaptnkoala). Note that if if a notification was scheduled with exact timing via the `AndroidScheduleMode` but the exact alarm permissions had been revoked, an error log message will be written and notification will no longer be scheduled. Do note that the `androidScheduleMode` parameter has a default value of `AndroidScheduleMode.exact` to align with what was the default value of `androidAllowWhileIdle` before (i.e. `false`) where that meant exact timing was to be used but the device being a low-powered idle may cause it to be delayed. When the `androidAllowWhileIdle` parameter is removed in the future, `androidScheduleMode` will become a required named parameter to ensure developers explicitly specify the value they want
+  * [Android] **Breaking change** related to this is whilst `androidAllowWhileIdle` is deprecated via the `FlutterLocalNotificationsPlugin` APIs, `allowWhileIdle` has been removed and completely replaced by a `scheduleMode` parameter when whe directly using the `AndroidFlutterLocalNotificationsPlugin` APIs
+* [Android] adds a namespace for compatibility with AGP (Android Gradle plugin) 8.0. Thanks to the PR from [asaarnak](https://github.com/asaarnak)
+* [iOS][macOS] fixed issue [1950](https://github.com/MaikuB/flutter_local_notifications/issues/1950) where plugin would crash when calling `zonedSchedule()` with a date/time value that is exactly when daylight savings occurs and the APIs from Apple weren't able to resolve what the actual date/time is meant to be
+* [Android] updated `AndroidServiceForegroundType` values to align with new additions that are part of Android 14. Thanks to the PR from [Rexios](https://github.com/Rexios80)
+* [macOS] fixed issue [1858](https://github.com/MaikuB/flutter_local_notifications/issues/1858) where macOS app builds were showing deprecation warnings. Thanks to the PR from [Steve Kohls](https://github.com/stevekohls)
+* Bumped `mockito` dev dependency
+* Align Dart SDK constraint with minimum Flutter version (i.e. 3.0)
+* Fixed readme that was reference old classes with `IOS` as part of the name instead of the newer classes that have the `Darwin` prefix
+* Removed dead link that had archived official documentation around guidance on creating the appropriate Android icons that would help with creating notification icons. Now replaced with a link to using [Image Asset Studio](https://developer.android.com/studio/write/create-app-icons#create-notification) to create notification icons
+
+
+# [13.0.0]
+
+* [Android] Bumped Android Gradle plugin to 7.3.1. Thanks to the PR from [Rexios](https://github.com/Rexios80)
+* * Updated minimum Flutter version to 3.0.0. Note that technically this was already a requirement by `flutter_local_notifications_linux` 2.0.0 as `ffi` 2.0.0 requires Dart 2.17 at a minimum and that shipped with Flutter 3.0.0
+* Added explicit `ffi` dependency that Linux implementation of the plugin was already using
+* Updated site used by example app to display dummy/placeholder images
+* Updated readme to warn developers that choose not to follow the official Android guidance around notification icons that using the `@mipmap/ic_launcher` resource requires additional release build configuration. Thanks to the PR from [Daniel Arndt](https://github.com/DanielArndt)
+* Updated readme to add note about how Flutter has an issue with apps running with desugaring on Android 12L and above. Thanks to the PR from [Mirek Mazel](https://github.com/12people) See https://github.com/flutter/flutter/issues/110658. One potential fix added to the readme is for apps to add the [WindowManager library](https://developer.android.com/jetpack/androidx/releases/window) as a dependency:
+
+ ```gradle
+ dependencies {
+     implementation 'androidx.window:window:1.0.0'
+     implementation 'androidx.window:window-java:1.0.0'
+     ...
+ }
+ ```
+ 
+# [12.0.4]
+
+* Fixed issue [1796](https://github.com/MaikuB/flutter_local_notifications/issues/1796) where a `java.lang.ClassCastException` may be thrown on some Android devices when the `onDidReceiveBackgroundNotificationResponse` has been specified when calling `initialize()` 
+
+# [12.0.3+1]
+
+* Updated Kotlin version used in example app
+* Updated code snippets in readme to add missing import statements around the iOS setup related to notification actions. Thanks to PR from [som-R91](https://github.com/som-R91)
+
+# [12.0.3]
+
+* [Android] removed reference to Android V1 embedding. Thanks to PR from [Simon Ser](https://github.com/emersion)
+* Updated code snippet in readme around requesting notification permissions on Android. Thanks to PR from [Leo](https://github.com/rignaneseleo)
+
+# [12.0.2]
+
+* [Android] changed callback lookup for notification actions to take place after Flutter engine to ensure callback cache has been initialised to find the callback. This is a follow-up to changes done in 12.0.1 in trying to address issue [1721](https://github.com/MaikuB/flutter_local_notifications/issues/1721)
+* [Android] updated plugin to clean up resources after it is detached from Flutter engine. Thanks to PR from [Simon Ser](https://github.com/emersion)
+
+# [12.0.1+1]
+
+* Updated readme to indicate that the `timezone` package should be added as a direct dependency according to [this official lint rule](https://dart-lang.github.io/linter/lints/depend_on_referenced_packages.html)
+* Bumped dependency constraints on `flutter_local_notification_linux` that was meant to be done in 12.0.0
+
+# [12.0.1]
+
+* [Android][iOS] fixed issue [1721](https://github.com/MaikuB/flutter_local_notifications/issues/1721) where a crash occurs upon tapping on a notification action fbut the `onDidReceiveBackgroundNotificationResponse` optional callback hasn't been specified. 
+* [iOS] suppressed deprecation warnings where plugin was Apple's old notification APIs to support older iOS devices
+
+# [12.0.0]
+
+* Bumped `dbus` dependency via `flutter_local_notifications_linux`
+
+# [11.0.1]
+
+* [Android] fixed crash when using notification actions with a foreground service. Thanks to the PR from [Arnold Laishram](https://github.com/arnoldlaishram)
+* [Android] Suppressed deprecation warning on calling the [`getParcelableExtra`](https://developer.android.com/reference/android/content/Intent#getParcelableExtra(java.lang.String)) Intent API
+* Fixed typo in readme around Darwin (iOS/macOS) initialisation settings
+* Added a link to an issue with using Flutter apps with desugaring enabled where crashes could occur on foldable Android devices. Link to this is https://github.com/flutter/flutter/issues/110658 so those experience the problem can follow the issue and try out the solutions there as this isn't specific to the plugin
+* Replaced usage of rxDart in example app use `StreamController` instead to minimise use of dependencies and removed unused `shared_preferences` dependency
+
+
+# [11.0.0]
+
+* Bumped `timezone` dependency. To err on the safe when it comes to dependency version conflicts, this is being published as major release as the updated `timezone` package was published as a major release. Thanks to the PR from [Joachim Nohl](https://github.com/nohli)
+
 # [10.0.0]
 
 * **Breaking change** [Android] `zonedSchedule()`'s implementation has switched to using [desugaring](https://developer.android.com/studio/releases/gradle-plugin#j8-library-desugaring) instead of the [ThreeTen Android Backport library](https://github.com/JakeWharton/ThreeTenABP). This required the plugin to update to using Android Gradle plugin 4.2.2 and applications may need to bump their Android Gradle plugin dependency to at least 4.2.2 as a result. Added a "Gradle setup" section underneath "Android setup" with details on the extra setup needed

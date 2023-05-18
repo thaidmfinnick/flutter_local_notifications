@@ -198,6 +198,23 @@ public class FlutterLocalNotificationsPlugin
     registrar.addNewIntentListener(plugin);
     registrar.addRequestPermissionsResultListener(plugin);
     plugin.onAttachedToEngine(registrar.context(), registrar.messenger());
+  static void rescheduleNotifications(Context context) {
+    ArrayList<NotificationDetails> scheduledNotifications = loadScheduledNotifications(context);
+    for (NotificationDetails notificationDetails : scheduledNotifications) {
+      try {
+        if (notificationDetails.repeatInterval != null) {
+          repeatNotification(context, notificationDetails, false);
+        } else if (notificationDetails.timeZoneName != null) {
+          zonedScheduleNotification(context, notificationDetails, false);
+        } else {
+          scheduleNotification(context, notificationDetails, false);
+        }
+      } catch (ExactAlarmPermissionException e) {
+        // TODO: update tag used to match name of class
+        Log.e("notification", e.getMessage());
+        removeNotificationFromCache(context, notificationDetails.id);
+      }
+    }
   }
 
   static void rescheduleNotifications(Context context) {
@@ -212,6 +229,10 @@ public class FlutterLocalNotificationsPlugin
       } else {
         repeatNotification(context, scheduledNotification, false);
       }
+    } catch (ExactAlarmPermissionException e) {
+      // TODO: update tag used to match name of class
+      Log.e("notification", e.getMessage());
+      removeNotificationFromCache(context, notificationDetails.id);
     }
   }
 

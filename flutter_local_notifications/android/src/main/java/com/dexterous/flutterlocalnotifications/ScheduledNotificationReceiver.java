@@ -19,6 +19,8 @@ import java.lang.reflect.Type;
 @Keep
 public class ScheduledNotificationReceiver extends BroadcastReceiver {
 
+  private static final String TAG = "ScheduledNotificationReceiver";
+
   @Override
   public void onReceive(final Context context, Intent intent) {
     String notificationDetailsJson =
@@ -31,6 +33,14 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
       } else {
         notification = intent.getParcelableExtra("notification");
       }
+
+      if (notification == null) {
+        // This means the notification is corrupt
+        FlutterLocalNotificationsPlugin.removeNotificationFromCache(context, notificationId);
+        Log.e(TAG, "Failed to parse a notification from  Intent. ID: " + notificationId);
+        return;
+      }
+
       notification.when = System.currentTimeMillis();
       int notificationId = intent.getIntExtra("notification_id", 0);
       NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
